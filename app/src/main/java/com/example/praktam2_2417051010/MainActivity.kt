@@ -16,8 +16,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.example.praktam2_2417051010.ui.theme.PrakTAM2_2417051010Theme
 
 
@@ -36,18 +39,21 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Greeting() {
-    val Rajut = RajutSource.dummyRajut[0]
 
-    Column(modifier = Modifier.fillMaxSize().padding(all = 60.dp)) {
-        Image(
-            painter = painterResource(id = Rajut.ImageRes),
-            contentDescription = Rajut.nama,
-            modifier = Modifier.size(200.dp),
-            contentScale = ContentScale.Crop
-        )
-        Text(text = "Nama : ${Rajut.nama}")
-        Text(text = "Deskripsi : ${Rajut.deskripsi}")
-        Text(text = "Harga : ${Rajut.harga}")
+    Column(modifier = Modifier.fillMaxSize().padding(all = 60.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = "Katalog Rajutan", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 20.dp))
+        RajutSource.dummyRajut.take(4).forEach { Rajut ->
+            Image(
+                painter = painterResource(id = Rajut.ImageRes),
+                contentDescription = Rajut.nama,
+                modifier = Modifier.size(200.dp),
+                contentScale = ContentScale.Crop
+            )
+            Text(text = "Nama : ${Rajut.nama}")
+            Text(text = "Deskripsi : ${Rajut.deskripsi}")
+            Text(text = "Harga : ${Rajut.harga}")
+
+        }
     }
 }
 
