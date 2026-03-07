@@ -1,28 +1,33 @@
 package com.example.praktam2_2417051010
 
+import Model.Rajut
 import Model.RajutSource
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import com.example.praktam2_2417051010.ui.theme.PrakTAM2_2417051010Theme
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,37 +35,73 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PrakTAM2_2417051010Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                }
+                KatalogRajutScreen()
             }
         }
     }
 }
 
 @Composable
-fun Greeting() {
+fun KatalogRajutScreen() {
 
-    Column(modifier = Modifier.fillMaxSize().padding(all = 60.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Katalog Rajutan", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 20.dp))
-        RajutSource.dummyRajut.take(4).forEach { Rajut ->
-            Image(
-                painter = painterResource(id = Rajut.ImageRes),
-                contentDescription = Rajut.nama,
-                modifier = Modifier.size(200.dp),
-                contentScale = ContentScale.Crop
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)){
+            Text(
+                text = "KATALOG RAJUT",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                fontSize = 30.sp
             )
-            Text(text = "Nama : ${Rajut.nama}")
-            Text(text = "Deskripsi : ${Rajut.deskripsi}")
-            Text(text = "Harga : ${Rajut.harga}")
 
+        RajutSource.dummyRajut.forEach { rajut ->
+            DetailScreen(rajut = rajut)
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+fun DetailScreen(rajut: Rajut) {
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        Image(
+            painter = painterResource(id = rajut.ImageRes),
+            contentDescription = rajut.nama,
+            modifier = Modifier.fillMaxWidth().height(220.dp),
+            contentScale = ContentScale.Crop
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = rajut.nama,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = rajut.deskripsi,
+            style = MaterialTheme.typography.bodyLarge
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Pesan Sekarang")
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun KatalogRajutPreview() {
     PrakTAM2_2417051010Theme {
-        Greeting()
+        KatalogRajutScreen()
     }
 }
