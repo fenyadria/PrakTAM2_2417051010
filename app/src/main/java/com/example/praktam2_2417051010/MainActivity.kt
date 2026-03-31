@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,6 +70,7 @@ fun KatalogRajutScreen() {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding(),
         contentPadding = PaddingValues(24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -76,6 +78,7 @@ fun KatalogRajutScreen() {
         item {
             Text(
                 text = "Rekomendasi Populer",
+                color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -93,6 +96,7 @@ fun KatalogRajutScreen() {
 
             Text(
                 text = "Daftar Katalog Rajut",
+                color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -108,6 +112,9 @@ fun KatalogRajutScreen() {
 @Composable
 fun RajutRowItem(rajut: Rajut) {
     Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondary
+        ),
         modifier = Modifier.width(160.dp),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -125,7 +132,8 @@ fun RajutRowItem(rajut: Rajut) {
                 Text(
                     text = rajut.nama,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Text(
                     text = "Rp. ${rajut.harga}",

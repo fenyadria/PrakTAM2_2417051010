@@ -12,7 +12,7 @@ import com.example.praktam2_2417051010.R
 val ButlerFont = FontFamily(Font(R.font.butler))
 val HelveticaFont = FontFamily(Font(R.font.helveticaroundedbold))
 
-val Typography = Typography(
+val AppTypography = Typography(
     bodyLarge = TextStyle(
         fontFamily = HelveticaFont,
         fontWeight = FontWeight.Normal,
