@@ -1,7 +1,7 @@
 package com.example.praktam2_2417051010
 
-import Model.Rajut
-import Model.RajutSource
+import com.example.praktam2_2417051010.model.Rajut
+import com.example.praktam2_2417051010.model.RajutSource
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,28 +9,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,10 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.Row
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Card
@@ -56,7 +39,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.focus.focusModifier
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.layout.ContentScale
@@ -68,6 +50,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import com.example.praktam2_2417051010.network.RetrofitClient
+import coil.compose.AsyncImage
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,19 +69,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(navController: NavController) {
+fun AppNavigation(navController: NavHostController) {
+    var rajuts by remember { mutableStateOf<List<Rajut>>(emptyList()) }
+
     NavHost(
-        navController = navController as NavHostController,
+        navController = navController,
         startDestination = "home"
     ){
         composable("home") {
-            KatalogRajutScreen(navController = navController)
+            KatalogRajutScreen(navController) { fetchedRajuts ->
+                rajuts = fetchedRajuts
+            }
         }
         composable("detail/{nama}"){ backStackEntry ->
             val nama = backStackEntry.arguments?.getString("nama")
-            val rajut = RajutSource.dummyRajut.find{
-                it.nama == nama
-            }
+            val rajut = rajuts.find { it.nama == nama }
+
             if (rajut != null) {
                 DetailScreen(rajut = rajut, navController = navController)
             }
@@ -104,50 +93,100 @@ fun AppNavigation(navController: NavController) {
 }
 
 @Composable
-fun KatalogRajutScreen(navController: NavController) {
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding(),
-        contentPadding = PaddingValues(24.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
-        item {
-            Text(
-                text = "Rekomendasi Populer",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+fun KatalogRajutScreen(navController: NavController, onRajutsLoaded: (List<Rajut>) -> Unit = {}) {
+    var rajuts by remember { mutableStateOf<List<Rajut>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            )   {
-                    items(RajutSource.dummyRajut) { rajut ->
-                        RajutRowItem(rajut = rajut, navController = navController)
+    LaunchedEffect(Unit) {
+        try {
+            rajuts = RetrofitClient.instance.getRajut()
+            onRajutsLoaded(rajuts)
+            isLoading = false
+            isError = false
+        } catch (e: Exception) {
+            isLoading = false
+            isError = true
+        }
+    }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.background
+        ) { innerPadding ->
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(MaterialTheme.colorScheme.background)
+                    .statusBarsPadding(),
+                contentPadding = PaddingValues(24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                if (isError || rajuts.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxSize().padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "Gagal memuat Data",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Red
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text(
+                                    text = "Pastikan koneksi internet Anda menyala",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.Gray,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                item {
+                    Text(
+                        text = "Rekomendasi Populer",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = "Daftar Katalog Rajut",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(rajuts) { rajut ->
+                            RajutRowItem(rajut, navController)
+                        }
+                    }
 
-            items(RajutSource.dummyRajut) { rajut ->
-                DetailRajut(rajut = rajut, navController = navController)
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = "Daftar Katalog Rajut",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+                items(rajuts) { rajut ->
+                    DetailRajut(rajut, navController)
+                }
             }
         }
     }
@@ -160,6 +199,9 @@ fun DetailRajut(
         isFullScreen: Boolean = false
 ) {
     var isFavorite by remember { mutableStateOf(false) }
+//    val context = LocalContext.current
+//    val resId = RajutSource.getResourceId(context, rajut.imageUrl)
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -170,9 +212,11 @@ fun DetailRajut(
     ) {
         Column{
             Box {
-                Image(
-                    painter = painterResource(rajut.ImageRes),
+                AsyncImage(
+                    model =rajut.imageUrl,
                     contentDescription = rajut.nama,
+                    placeholder = painterResource(R.drawable.shaun),
+                    error = painterResource(R.drawable.frog),
                     modifier = Modifier.fillMaxWidth().height(if (isFullScreen) 300.dp else 200.dp),
                     contentScale = ContentScale.Crop
                 )
@@ -214,6 +258,10 @@ fun DetailRajut(
 
 @Composable
 fun RajutRowItem(rajut: Rajut, navController: NavController) {
+//    val context = LocalContext.current
+//    val resId = RajutSource.getResourceId(context,rajut.imageName)
+//    val imageRes = if (resId != 0) resId else R.drawable.shaun
+
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondary
@@ -225,9 +273,11 @@ fun RajutRowItem(rajut: Rajut, navController: NavController) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column {
-            Image(
-                painter = painterResource(id = rajut.ImageRes),
+            AsyncImage(
+                model = rajut.imageUrl,
                 contentDescription = rajut.nama,
+                placeholder = painterResource(R.drawable.shaun),
+                error = painterResource(R.drawable.frog),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
@@ -255,6 +305,8 @@ fun DetailScreen(rajut: Rajut, navController: NavController) {
     var isLoading by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+//    val context = LocalContext.current
+//    val resId = RajutSource.getResourceId(context,rajut.imageUrl)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
