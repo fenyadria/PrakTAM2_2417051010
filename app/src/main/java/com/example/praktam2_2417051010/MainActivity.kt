@@ -1,12 +1,10 @@
 package com.example.praktam2_2417051010
 
-import com.example.praktam2_2417051010.model.Rajut
-import com.example.praktam2_2417051010.model.RajutSource
+import com.example.praktam2_2417051010.data.model.Rajut
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -51,8 +49,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
-import com.example.praktam2_2417051010.network.RetrofitClient
+import com.example.praktam2_2417051010.data.repository.RajutRepository
 import coil.compose.AsyncImage
 
 class MainActivity : ComponentActivity() {
@@ -98,16 +95,14 @@ fun KatalogRajutScreen(navController: NavController, onRajutsLoaded: (List<Rajut
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
 
+    val repository = remember { RajutRepository() }
+
     LaunchedEffect(Unit) {
-        try {
-            rajuts = RetrofitClient.instance.getRajut()
-            onRajutsLoaded(rajuts)
-            isLoading = false
-            isError = false
-        } catch (e: Exception) {
-            isLoading = false
-            isError = true
-        }
+        isLoading = true
+        rajuts = repository.getRajut()
+        isLoading = false
+        onRajutsLoaded(rajuts)
+        isError = rajuts.isEmpty()
     }
 
     if (isLoading) {
